@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1c1a17"/>
+  <circle cx="256" cy="256" r="196" fill="#f4efe4"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#d98e1f" stroke-width="14"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#211d18" stroke-width="4"/>
+  <g stroke="#211d18" stroke-width="10" stroke-linecap="round">
+    <line x1="256" y1="112" x2="256" y2="142"/>
+    <line x1="370" y1="150" x2="350" y2="175"/>
+    <line x1="400" y1="256" x2="370" y2="256"/>
+    <line x1="142" y1="150" x2="162" y2="175"/>
+    <line x1="112" y1="256" x2="142" y2="256"/>
+  </g>
+  <g font-family="system-ui, sans-serif" font-weight="800" fill="#211d18" text-anchor="middle">
+    <text x="256" y="200" font-size="44">0</text>
+    <text x="392" y="300" font-size="36">HP</text>
+  </g>
+  <line x1="256" y1="256" x2="352" y2="168" stroke="#b3261e" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="26" fill="#211d18"/>
+  <circle cx="256" cy="256" r="26" fill="none" stroke="#d98e1f" stroke-width="5"/>
+  <text x="256" y="392" font-family="system-ui, sans-serif" font-weight="800" font-size="52" fill="#d98e1f" text-anchor="middle">DYNO</text>
+</svg>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1c1a17">
+<title>Popps's Garage Dyno</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="top">
+  <h1>Popps's Garage Dyno</h1>
+  <p class="tagline">Desktop-Dyno-style HP &amp; torque estimates for Harleys.
+  Build a combo, see the curves. Every number is an <strong>ESTIMATE</strong> —
+  never a dyno sheet.</p>
+</header>
+
+<main>
+  <!-- ============ DYNO ============ -->
+  <section class="view active" id="view-dyno">
+    <h2>Build a combo</h2>
+    <p class="muted">Pick a stock baseline, then bolt on the mods. The dyno
+    estimates crank horsepower and torque — what the engine makes before
+    the drivetrain takes its cut (figure roughly 12–15% less at the rear
+    wheel).</p>
+
+    <div class="card">
+      <h3 style="margin-top:0">Presets — example bikes</h3>
+      <div class="preset-row" id="preset-row"></div>
+      <p class="muted">Presets are starting points, not gospel — tweak any
+      field after loading one. They describe example bikes, not anyone's
+      actual build sheet.</p>
+    </div>
+
+    <form id="form-a" onsubmit="return false">
+      <fieldset>
+        <legend>Engine</legend>
+        <label>Baseline (stock bike)
+          <select id="a-baseline"></select>
+        </label>
+        <div id="a-baseline-info" class="muted"></div>
+        <div class="grid2">
+          <label>Displacement (ci) — blank = stock
+            <input type="number" id="a-disp" min="30" max="200" step="0.1" inputmode="decimal">
+          </label>
+          <label>Compression ratio — blank = stock
+            <input type="number" id="a-cr" min="5" max="14" step="0.1" inputmode="decimal">
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Induction &amp; cam</legend>
+        <label>Carburetor / throttle body
+          <select id="a-carb"></select>
+        </label>
+        <label>Camshaft
+          <select id="a-cam"></select>
+        </label>
+        <div id="a-cam-info" class="muted"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Bolt-ons</legend>
+        <label>Exhaust
+          <select id="a-exhaust"></select>
+        </label>
+        <label>Heads
+          <select id="a-heads"></select>
+        </label>
+        <div class="grid2">
+          <label>Air cleaner
+            <select id="a-air"></select>
+          </label>
+          <label>Fuel
+            <select id="a-fuel"></select>
+          </label>
+        </div>
+        <label>Rev limit (rpm) — blank = cam allows what it allows
+          <input type="number" id="a-revlimit" min="3000" max="9000" step="50" inputmode="numeric">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Conditions (SAE correction)</legend>
+        <p class="muted">The estimate is corrected power — standard day,
+        sea level. These fields show what the same motor would make
+        in real air.</p>
+        <div class="preset-row">
+          <button type="button" class="secondary" id="sae-standard">Sea level, 77°F</button>
+          <button type="button" class="secondary" id="sae-phx-summer">Phoenix summer</button>
+          <button type="button" class="secondary" id="sae-phx-winter">Phoenix winter</button>
+        </div>
+        <div class="grid2">
+          <label>Temperature (°F)
+            <input type="number" id="a-temp" value="77" min="-20" max="130" step="1">
+          </label>
+          <label>Altitude (ft)
+            <input type="number" id="a-alt" value="0" min="0" max="10000" step="50">
+          </label>
+        </div>
+      </fieldset>
+
+      <button type="button" class="big" id="run-a">Run the dyno</button>
+    </form>
+
+    <noscript><div class="warn">This tool needs JavaScript — it runs
+    entirely on your device, with no server and no network.</div></noscript>
+    <div id="results-a"></div>
+  </section>
+
+  <!-- ============ COMPARE ============ -->
+  <section class="view" id="view-compare">
+    <h2>A / B comparison</h2>
+    <p class="muted">Combo A is whatever is on the Dyno tab. Build combo B
+    here, then compare the two — same baseline, different cam? Stock
+    pipes vs 2-into-1? See the curves side by side.</p>
+    <div id="compare-a-summary" class="card"></div>
+    <form id="form-b" onsubmit="return false">
+      <fieldset>
+        <legend>Combo B — engine</legend>
+        <label>Baseline (stock bike)
+          <select id="b-baseline"></select>
+        </label>
+        <div id="b-baseline-info" class="muted"></div>
+        <div class="grid2">
+          <label>Displacement (ci) — blank = stock
+            <input type="number" id="b-disp" min="30" max="200" step="0.1" inputmode="decimal">
+          </label>
+          <label>Compression ratio — blank = stock
+            <input type="number" id="b-cr" min="5" max="14" step="0.1" inputmode="decimal">
+          </label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Combo B — induction &amp; cam</legend>
+        <label>Carburetor / throttle body
+          <select id="b-carb"></select>
+        </label>
+        <label>Camshaft
+          <select id="b-cam"></select>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Combo B — bolt-ons</legend>
+        <label>Exhaust
+          <select id="b-exhaust"></select>
+        </label>
+        <label>Heads
+          <select id="b-heads"></select>
+        </label>
+        <div class="grid2">
+          <label>Air cleaner
+            <select id="b-air"></select>
+          </label>
+          <label>Fuel
+            <select id="b-fuel"></select>
+          </label>
+        </div>
+        <label>Rev limit (rpm) — blank = cam allows what it allows
+          <input type="number" id="b-revlimit" min="3000" max="9000" step="50" inputmode="numeric">
+        </label>
+      </fieldset>
+      <button type="button" class="big" id="run-compare">Compare A vs B</button>
+    </form>
+    <div id="results-compare"></div>
+  </section>
+
+  <!-- ============ CATALOG ============ -->
+  <section class="view" id="view-catalog">
+    <h2>Catalog — what's actually on file</h2>
+    <p class="muted">Every baseline, carb, and cam in the dyno, with its
+    source. If a number isn't here, the dyno doesn't have it — and it
+    says so instead of guessing.</p>
+    <div id="catalog"></div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section class="view" id="view-about">
+    <h2>How the dyno works — and what it isn't</h2>
+    <div class="card">
+      <h3 style="margin-top:0">What it is</h3>
+      <p>A Desktop-Dyno-style estimator, in the spirit of the one
+      Joshua's dad used to bench-race builds on the family computer.
+      You describe a combination of parts; it estimates crank
+      horsepower and torque across the rev range and draws the curves.</p>
+      <h3>How the math works</h3>
+      <ol>
+        <li><strong>Start from a published stock baseline</strong> —
+        displacement, compression, factory HP and torque, redline.
+        Each baseline cites its source in the Catalog tab.</li>
+        <li><strong>Mods multiply peak torque</strong> by documented
+        factors: displacement (~proportional), compression (~2.8% per
+        point), carb bore area, cam duration and lift, exhaust, heads,
+        air cleaner. These are heuristics from published dyno lore,
+        not physics — the exact factors are listed under each result.</li>
+        <li><strong>A torque curve is built</strong> around the
+        estimated peak: rising from idle to the peak-torque rpm, then
+        falling toward redline. The fall-off is <em>calibrated per
+        baseline</em> so a bone-stock combo reproduces its published
+        stock HP within ~1%.</li>
+        <li><strong>Horsepower = torque × rpm / 5252</strong> at every
+        point. Peak HP is read off the curve, never typed in.</li>
+        <li><strong>SAE J1349 correction</strong> converts corrected
+        power to what the motor makes in real air (temperature and
+        altitude). Phoenix summer heat costs real power — the dyno
+        shows how much.</li>
+      </ol>
+      <h3>What it isn't</h3>
+      <ul>
+        <li>Not a dyno sheet. A real dyno measures; this estimates.
+        Treat the numbers as "in the ballpark" — good for comparing
+        two combos, not for bragging rights.</li>
+        <li>Not a tuning guide. Jetting, timing, and clearances come
+        from the manuals, not from here.</li>
+        <li>Crank figures. Expect roughly 12–15% less at the rear
+        wheel through the primary, gearbox, and belt/chain.</li>
+        <li>No airflow simulation — no port-flow numbers, no VE map.
+        If a part isn't in the catalog, the dyno says so.</li>
+      </ul>
+      <h3>On specs: real numbers or nothing</h3>
+      <p>This tool will never invent a torque, clearance, or spec
+      value. Stock baselines carry their published source. Carbs and
+      cams with unpublished flow or duration are flagged in the
+      catalog and in the results. If you know a published number the
+      dyno is missing, add it with its source — that's how the catalog
+      grows.</p>
+      <p class="muted">Everything runs on your device — plain
+      JavaScript, no runtime download, no server, no network. Works
+      offline from the first visit; add it to your home screen and it
+      lives there.</p>
+    </div>
+  </section>
+</main>
+
+<nav class="nav">
+  <button data-view="view-dyno" class="active">Dyno</button>
+  <button data-view="view-compare">Compare</button>
+  <button data-view="view-catalog">Catalog</button>
+  <button data-view="view-about">About</button>
+</nav>
+
+<script src="dyno.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
