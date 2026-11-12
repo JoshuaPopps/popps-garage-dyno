@@ -155,7 +155,7 @@ function applyPreset(name) {
 // ---------------- chart ----------------
 
 function chartSvg(series) {
-  var W = 800, H = 340, PL = 58, PR = 58, PT = 18, PB = 38;
+  var W = 560, H = 360, PL = 62, PR = 62, PT = 26, PB = 48;
   var maxRpm = 0, maxHp = 0, maxTq = 0;
   for (var s = 0; s < series.length; s++) {
     maxRpm = Math.max(maxRpm, series[s][1].redline);
@@ -178,33 +178,33 @@ function chartSvg(series) {
     var tqV = Math.round(maxTq * (1 - frac));
     parts.push('<line x1="' + PL + '" y1="' + y + '" x2="' + (W - PR) + '" y2="' + y +
       '" stroke="#d8d0bd" stroke-width="1"/>');
-    parts.push('<text x="' + (PL - 6) + '" y="' + (y + 4) +
-      '" font-size="13" fill="#6f6a5e" text-anchor="end">' + hpV + "</text>");
-    parts.push('<text x="' + (W - PR + 6) + '" y="' + (y + 4) +
-      '" font-size="13" fill="#6f6a5e" text-anchor="start">' + tqV + "</text>");
+    parts.push('<text x="' + (PL - 6) + '" y="' + (y + 6) +
+      '" font-size="17" fill="#3d3830" text-anchor="end">' + hpV + "</text>");
+    parts.push('<text x="' + (W - PR + 6) + '" y="' + (y + 6) +
+      '" font-size="17" fill="#3d3830" text-anchor="start">' + tqV + "</text>");
   }
   parts.push('<text x="' + (PL - 6) + '" y="' + (PT - 6) +
-    '" font-size="13" font-weight="bold" fill="#b3261e">HP</text>');
+    '" font-size="17" font-weight="bold" fill="#b3261e">HP</text>');
   parts.push('<text x="' + (W - PR + 6) + '" y="' + (PT - 6) +
-    '" font-size="13" font-weight="bold" fill="#1d4e89">TQ</text>');
+    '" font-size="17" font-weight="bold" fill="#1d4e89">TQ</text>');
   for (var rpm = 2000; rpm <= maxRpm; rpm += 1000) {
     parts.push('<text x="' + Math.round(X(rpm)) + '" y="' + (H - 14) +
-      '" font-size="13" fill="#6f6a5e" text-anchor="middle">' + rpm + "</text>");
+      '" font-size="16" fill="#3d3830" text-anchor="middle">' + rpm + "</text>");
   }
-  parts.push('<text x="' + Math.round((PL + W - PR) / 2) + '" y="' + (H - 14) +
-    '" font-size="13" fill="#6f6a5e" text-anchor="middle">rpm</text>');
+  parts.push('<text x="' + Math.round((PL + W - PR) / 2) + '" y="' + (H - 32) +
+    '" font-size="16" fill="#3d3830" text-anchor="middle">rpm</text>');
   for (var k = 0; k < series.length; k++) {
     var r = series[k][1], hpC = series[k][2], tqC = series[k][3];
     var dashed = series[k][4];
     var dash = dashed ? ' stroke-dasharray="7 5"' : "";
     var hpPts = r.curve.map(function (p) { return Math.round(X(p[0])) + "," + Math.round(Yhp(p[2])); }).join(" ");
     var tqPts = r.curve.map(function (p) { return Math.round(X(p[0])) + "," + Math.round(Ytq(p[1])); }).join(" ");
-    parts.push('<polyline points="' + hpPts + '" fill="none" stroke="' + hpC + '" stroke-width="3"' + dash + "/>");
-    parts.push('<polyline points="' + tqPts + '" fill="none" stroke="' + tqC + '" stroke-width="3"' + dash + "/>");
+    parts.push('<polyline points="' + hpPts + '" fill="none" stroke="' + hpC + '" stroke-width="3.5"' + dash + "/>");
+    parts.push('<polyline points="' + tqPts + '" fill="none" stroke="' + tqC + '" stroke-width="3.5"' + dash + "/>");
     parts.push('<circle cx="' + Math.round(X(r.peak_hp_rpm)) + '" cy="' + Math.round(Yhp(r.peak_hp)) +
-      '" r="5" fill="' + hpC + '"/>');
+      '" r="6" fill="' + hpC + '"/>');
     parts.push('<circle cx="' + Math.round(X(r.peak_tq_rpm)) + '" cy="' + Math.round(Ytq(r.peak_tq)) +
-      '" r="5" fill="' + tqC + '"/>');
+      '" r="6" fill="' + tqC + '"/>');
   }
   parts.push("</svg>");
   return parts.join("");

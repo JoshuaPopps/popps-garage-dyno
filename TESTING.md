@@ -137,3 +137,27 @@ No personal or system information ships in the app.
   phone after approval.
 - Tested on Node 24 (engine tests + Playwright harness); the app
   itself is HTML + CSS + plain JavaScript, no dependencies.
+
+## v1.0.1 — readability (2026-11-11)
+
+Joshua's word after installing it: make it easier to read. What changed:
+
+- **Chart was the worst of it.** The SVG used an 800-wide viewBox with
+  13px grey axis labels — on a phone that renders at ~6px. Now a
+  560-wide viewBox with 17px dark-ink axis labels (16px rpm labels),
+  thicker curves (3.5px) and bigger peak dots. Roughly double the
+  effective label size on a phone.
+- **The chart had no width rule at all.** The stylesheet sized
+  `canvas.chart`, but the chart is an SVG — the rule never matched, so
+  the chart rendered at the browser's 300px default on desktop. Now
+  `.chart` gets `width: 100%`.
+- **Base type 17px/1.45 → 18px/1.55**, headings up a step (h1 1.75rem,
+  h2 1.45rem), form labels and tables to full 1rem, table padding
+  7px → 10px, badges 0.8 → 0.88rem, bottom-nav buttons 0.95 → 1.05rem.
+- **Muted text darkened** — the grey inside cards went from #6f6a5e
+  (~4.6:1 on paper) to #57524a (~7:1), and muted copy is no longer
+  set smaller than body text.
+- **Service-worker cache bumped v2 → v3** so installed copies pick up
+  the new styles instead of serving the old cached shell.
+- Engine untouched; `node test.js` still 33/33 and the Playwright UI
+  test still passes (re-run after the change, see above).
