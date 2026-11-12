@@ -177,22 +177,22 @@ function chartSvg(series) {
     var hpV = Math.round(maxHp * (1 - frac));
     var tqV = Math.round(maxTq * (1 - frac));
     parts.push('<line x1="' + PL + '" y1="' + y + '" x2="' + (W - PR) + '" y2="' + y +
-      '" stroke="#d8d0bd" stroke-width="1"/>');
+      '" stroke="#d7c392" stroke-width="1"/>');
     parts.push('<text x="' + (PL - 6) + '" y="' + (y + 6) +
-      '" font-size="17" fill="#3d3830" text-anchor="end">' + hpV + "</text>");
+      '" font-size="17" fill="#484236" text-anchor="end">' + hpV + "</text>");
     parts.push('<text x="' + (W - PR + 6) + '" y="' + (y + 6) +
-      '" font-size="17" fill="#3d3830" text-anchor="start">' + tqV + "</text>");
+      '" font-size="17" fill="#484236" text-anchor="start">' + tqV + "</text>");
   }
   parts.push('<text x="' + (PL - 6) + '" y="' + (PT - 6) +
-    '" font-size="17" font-weight="bold" fill="#b3261e">HP</text>');
+    '" font-size="17" font-weight="bold" fill="#bd3d1e">HP</text>');
   parts.push('<text x="' + (W - PR + 6) + '" y="' + (PT - 6) +
-    '" font-size="17" font-weight="bold" fill="#1d4e89">TQ</text>');
+    '" font-size="17" font-weight="bold" fill="#185a40">TQ</text>');
   for (var rpm = 2000; rpm <= maxRpm; rpm += 1000) {
     parts.push('<text x="' + Math.round(X(rpm)) + '" y="' + (H - 14) +
-      '" font-size="16" fill="#3d3830" text-anchor="middle">' + rpm + "</text>");
+      '" font-size="16" fill="#484236" text-anchor="middle">' + rpm + "</text>");
   }
   parts.push('<text x="' + Math.round((PL + W - PR) / 2) + '" y="' + (H - 32) +
-    '" font-size="16" fill="#3d3830" text-anchor="middle">rpm</text>');
+    '" font-size="16" fill="#484236" text-anchor="middle">rpm</text>');
   for (var k = 0; k < series.length; k++) {
     var r = series[k][1], hpC = series[k][2], tqC = series[k][3];
     var dashed = series[k][4];
@@ -231,9 +231,9 @@ function resultHtml(r, tempF, altFt, title) {
     '<div class="label">Peak torque</div>' +
     '<div class="sub">@ ' + r.peak_tq_rpm + " rpm (stock " + f1(stock.peak_tq) + ", " + signed(tqGain) + ")</div></div>");
   html.push("</div>");
-  html.push(chartSvg([["A", r, "#b3261e", "#1d4e89", false]]));
-  html.push('<p class="chart-legend"><span><span class="swatch" style="background:#b3261e"></span>' +
-    'Horsepower</span><span><span class="swatch" style="background:#1d4e89"></span>' +
+  html.push(chartSvg([["A", r, "#bd3d1e", "#185a40", false]]));
+  html.push('<p class="chart-legend"><span><span class="swatch" style="background:#bd3d1e"></span>' +
+    'Horsepower</span><span><span class="swatch" style="background:#185a40"></span>' +
     "Torque</span></p>");
   html.push('<div class="card"><h4>At ' + g(tempF) + " F / " +
     altFt.toLocaleString("en-US") +
@@ -291,13 +291,13 @@ function runCompare() {
   var html = [];
   html.push('<div class="estimate-banner">ESTIMATE — crank figures, not a dyno sheet.</div>');
   html.push(chartSvg([
-    ["A", ra, "#b3261e", "#1d4e89", false],
-    ["B", rb, "#d98e1f", "#2e7d32", true]
+    ["A", ra, "#bd3d1e", "#185a40", false],
+    ["B", rb, "#704b08", "#0b0c09", true]
   ]));
-  html.push('<p class="chart-legend"><span><span class="swatch" style="background:#b3261e"></span>' +
-    'A — horsepower</span><span><span class="swatch" style="background:#1d4e89"></span>' +
-    'A — torque</span><span><span class="swatch" style="background:#d98e1f"></span>' +
-    'B — horsepower</span><span><span class="swatch" style="background:#2e7d32"></span>' +
+  html.push('<p class="chart-legend"><span><span class="swatch" style="background:#bd3d1e"></span>' +
+    'A — horsepower</span><span><span class="swatch" style="background:#185a40"></span>' +
+    'A — torque</span><span><span class="swatch" style="background:#704b08"></span>' +
+    'B — horsepower</span><span><span class="swatch" style="background:#0b0c09"></span>' +
     "B — torque</span></p>");
   html.push('<table><tr><th></th><th class="num">Combo A</th><th class="num">Combo B</th>' +
     '<th class="num">Difference</th></tr>');
