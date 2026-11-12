@@ -1,4 +1,4 @@
-# Popps's Garage Dyno
+# Pocket Garage Dyno
 
 A Desktop-Dyno-style horsepower and torque estimator for Harleys — as
 a phone app you install from the browser. No app store, no account, no

@@ -1,4 +1,4 @@
-/* Popps's Garage Dyno — UI. Plain JavaScript, no frameworks, no network.
+/* Pocket Garage Dyno — UI. Plain JavaScript, no frameworks, no network.
  * The engine lives in dyno.js (DATA + estimate/compare/SAE). This file
  * is the forms, the chart, the catalog tables, and the wiring.
  */

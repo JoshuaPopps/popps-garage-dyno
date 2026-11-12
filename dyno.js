@@ -1,5 +1,5 @@
 "use strict";
-/* Popps's Garage Dyno — engine (JavaScript).
+/* Pocket Garage Dyno — engine (JavaScript).
  *
  * Ported 1:1 from the Python reference implementation (dyno.py), which
  * was retired once this port was verified against it on every baseline

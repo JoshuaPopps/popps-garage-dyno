@@ -122,7 +122,7 @@ tailnet, public), hostnames, usernames, real file paths, credentials,
 tokens, network names, phone numbers, and street addresses. Clean:
 all bikes, names, and numbers are labeled examples; the only external
 references are published sources (manuals, spec tables, flow-bench
-docs) cited in the catalog. "Popps" appears only in the app name.
+docs) cited in the catalog. No personal names appear anywhere in the app.
 No personal or system information ships in the app.
 
 ## Known limits (also in README)

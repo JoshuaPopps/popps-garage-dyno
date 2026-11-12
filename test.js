@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Tests for Popps's Garage Dyno (dyno.js). No dependencies.
+/* Tests for Pocket Garage Dyno (dyno.js). No dependencies.
  *
  *   node test.js
  *
