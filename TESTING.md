@@ -161,3 +161,24 @@ Joshua's word after installing it: make it easier to read. What changed:
   the new styles instead of serving the old cached shell.
 - Engine untouched; `node test.js` still 33/33 and the Playwright UI
   test still passes (re-run after the change, see above).
+
+## v1.0.2 — fieldset text was light-on-light (2026-11-11)
+
+Caught by a screenshot check after v1.0.1: inside the Engine card the
+"Baseline (stock bike)" label and the "Stock: 71 hp…" source note
+rendered almost invisible — pale text on the cream fieldset. Root
+cause, proven with computed styles: the fieldsets sit OUTSIDE `.card`,
+so they inherited the light page text color (rgb 244,239,228) while
+sitting on a near-white background (rgb 251,248,239), and the `.muted`
+notes inside them got the light-on-dark muted color (#c9c2b2) because
+`.card .muted` never applied. The selects looked fine only because
+they set their own ink color explicitly.
+
+Fix: `fieldset` now sets `color: var(--ink)` and a new
+`fieldset .muted` rule gives those notes the dark muted ink. Same bug
+hit every fieldset on both the Dyno and Compare tabs, so one rule
+fixes them all. The `legend` also gets the fieldset background now —
+it straddles the border, and without it the top half of the word sat
+on the dark page. Cache bumped v3 → v4 so installed copies pick this
+up. Engine tests still 33/33, UI test still passes, screenshot
+verified dark-on-cream in the Engine card.

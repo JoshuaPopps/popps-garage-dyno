@@ -78,8 +78,12 @@ fieldset {
   padding: 8px 14px 14px;
   margin: 14px 0;
   background: #fbf8ef;
+  color: var(--ink);
 }
-legend { font-weight: 700; padding: 0 6px; }
+/* Fieldsets sit outside .card, so their muted notes need the dark
+   muted ink explicitly — otherwise they inherit the light page text. */
+fieldset .muted { color: var(--muted); }
+legend { font-weight: 700; padding: 0 6px; background: #fbf8ef; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
 @media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
 
