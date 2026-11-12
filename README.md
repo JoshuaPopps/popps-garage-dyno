@@ -72,12 +72,12 @@ Open the app and tap a preset — the dyno runs immediately:
 
 ```
 1995 Fat Boy (1340) — S&S Super E, stock cam, drag pipes, high-flow air
-  ESTIMATE: 71.6 hp @ 5,200 rpm / 81.7 ft-lb @ 3,600 rpm (crank)
-  Stock 1340: 71 hp @ 5,000 / 82.5 ft-lb @ 3,600
+  ESTIMATE: 69.6 hp @ 5,100 rpm / 81.2 ft-lb @ 3,600 rpm (crank)
+  Stock 1340: 69 hp @ 5,000 / 82 ft-lb @ 3,600
   What moved it: Super E, drag pipes (cost low-end torque), high-flow air
 
 1990 Softail (1340) — stock CV40, stock cam, drag pipes
-  ESTIMATE: 70.0 hp @ 5,100 rpm / 80.0 ft-lb @ 3,600 rpm (crank)
+  ESTIMATE: 68.1 hp @ 5,100 rpm / 79.5 ft-lb @ 3,600 rpm (crank)
   Drag pipes alone cost a little low-end with nothing else added.
 
 1947 Knucklehead (74) — stock Linkert M74B, stock cam
@@ -124,10 +124,13 @@ rules it follows:
 
 - **Stock baselines carry their published source.** Where Harley
   never published a figure, the dyno says so:
-  - Harley published **no factory HP** for the Evo Big Twin, any Twin
-    Cam, or any Milwaukee-Eight — only torque. HP for those is a
+  - Harley published **no factory HP** for any Twin Cam or any
+    Milwaukee-Eight — only torque. HP for those is a
     clearly-labeled third-party or rear-wheel-derived figure, never
-    presented as factory.
+    presented as factory. The Evo Big Twin is the exception: the
+    1997–98 Softail Factory Service Manual #99482-98 (§1 spec table)
+    publishes 69 hp @ 5,000 / 82 lb-ft @ 3,600 for the 1340, and
+    that factory figure is the Evo baseline.
   - Harley published **no torque figure at all** for the Flathead 45,
     Knucklehead 61/74, and other pre-1966 engines. For those three
     baselines the peak torque is *estimated from the published HP*
@@ -144,7 +147,10 @@ rules it follows:
   a comparison have it; otherwise venturi area. S&S publishes no
   absolute CFM for the Super B/E/G/D — the dyno says so and uses
   venturi area. The Mikuni VM42 does not exist (the VM line runs
-  38 → 44); it is not in the catalog.
+  38 → 44); it is not in the catalog. Factory tune specs are in the
+  Catalog tab: CV40 jetting/float/idle and the Super E baseline jets
+  (S&S 510-0245), and the pump-gas floor is 87 octane minimum
+  (#99482-98) — the app's 91-octane baseline is within spec.
 - **Cams use the Harley duration convention** — Evo/Twin Cam figures
   are @ .053" lift, M8 @ .050", and the basis is shown on every row.
   Never relabeled. Cams with no published duration (Wood 22XE,

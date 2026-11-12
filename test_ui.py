@@ -57,22 +57,22 @@ def main():
             # The app renders synchronously on load (no runtime download).
             page.wait_for_selector("#results-a .big-number", timeout=30000)
 
-            # 1. Default run rendered: Evo 1340 stock, ~71 hp.
+            # 1. Default run rendered: Evo 1340 stock, ~69 hp.
             text = page.inner_text("#results-a")
             # CSS uppercases the labels, so compare case-insensitively.
             assert "peak horsepower" in text.lower(), "no HP block rendered"
-            assert "71" in text, "default stock Evo should show ~71 hp: %r" % text[:200]
+            assert "69" in text, "default stock Evo should show ~69 hp: %r" % text[:200]
             assert page.query_selector("#results-a svg.chart"), "no chart SVG"
 
             # 2. Baseline info + source shown.
             info = page.inner_text("#a-baseline-info")
-            assert "82.5" in info, "baseline info missing stock torque: %r" % info
+            assert "82 lb-ft" in info, "baseline info missing stock torque: %r" % info
 
             # 3. Preset: 1995 Fat Boy -> Super E + drag pipes.
             page.click("text=1995 Fat Boy (1340)")
             page.wait_for_timeout(500)
             text = page.inner_text("#results-a")
-            assert "71.6" in text, "Fat Boy preset should show 71.6 hp: %r" % text[:200]
+            assert "69.6" in text, "Fat Boy preset should show 69.6 hp: %r" % text[:200]
             assert "Super E" in text, "factor list should name the Super E"
 
             # 4. Phoenix summer SAE card.

@@ -82,10 +82,10 @@ Run from the app directory; no dependencies, Node 18+:
 setup, not shipped). Run 2026-11-11 20:26 MST, passed in ~4 seconds
 (the app renders synchronously on load; no runtime download):
 
-1. Default run renders: Evo 1340 stock, 71.0 hp @ 5,000 / 82.5 ft-lb,
+1. Default run renders: Evo 1340 stock, 69.1 hp @ 5,000 / 82 ft-lb,
    chart SVG present.
 2. Baseline info shows stock torque and source.
-3. Preset "1995 Fat Boy (1340)" → 71.6 hp, factor list names the
+3. Preset "1995 Fat Boy (1340)" → 69.6 hp, factor list names the
    Super E.
 4. Phoenix summer SAE card: 110°F / 1,100 ft shown, results re-run.
 5. Compare tab: combo B with HSR48 + 2-into-1 beats combo A, delta
@@ -182,3 +182,36 @@ it straddles the border, and without it the top half of the word sat
 on the dark page. Cache bumped v3 → v4 so installed copies pick this
 up. Engine tests still 33/33, UI test still passes, screenshot
 verified dark-on-cream in the Engine card.
+
+## v1.0.3 — knowledge-base fixes (2026-11-11)
+
+Sourced from the 1997–98 Softail Factory Service Manual #99482-98,
+S&S 510-0245, and the 1940–47 Knucklehead Service Manual — no
+invented numbers:
+
+- **Evo 1340 baseline corrected: 71 hp / 82.5 lb-ft → 69 hp @ 5,000 /
+  82 lb-ft @ 3,600** (factory figures, #99482-98 §1 spec table; bore
+  3.498 in., stroke 4.250 in., 80 ci / 1340 cc, 8.5:1). The old
+  figure was a spec-database number (MotorcycleSpecs 1984 FLHTC).
+  Preset outputs move with it: 1995 Fat Boy 71.6 @ 5,200 / 81.7 →
+  **69.6 @ 5,100 / 81.2**; 1990 Softail 70.0 / 80.0 →
+  **68.1 @ 5,100 / 79.5**. Stock fall-off recalibrates automatically
+  (decline 0.1995 → 0.2193, exponent 2.4 → 2.1).
+- **"H-D published NO factory hp for the Evo Big Twin" struck** —
+  directly contradicted by the manual. The claim now covers only
+  Twin Cam and Milwaukee-Eight (the parts the catalog's sources
+  support); the Evo cites the factory figure.
+- **Knucklehead displacement corrected** to the manual's nominal
+  figures: 61 → **61 Cu. In. (1000 c.c.)**, 74 → **74 Cu. In.
+  (1200 c.c.)** (was 60.3/989 and 73.7/1208). HP/torque untouched;
+  stock Knucklehead output unchanged (48.0 hp / 58.0 lb-ft).
+- **Catalog additions:** CV40 factory jetting + float (main 170 /
+  slow 42, 49-state; float 0.413–0.453 in.; idle 1000–1050 rpm) and
+  Super E baseline (.0295/.072, 1¼ turns, 950–1050 rpm), plus the
+  fuel octane floor — factory minimum **87 pump octane or higher**,
+  stated alongside the app's 91-octane baseline.
+- `test_ui.py` expectations updated to the new numbers (69 hp
+  default, 82 lb-ft baseline info, 69.6 hp Fat Boy preset). Engine
+  tests needed no changes — the calibration tests are generic and
+  still pass 33/33. Cache bumped v4 → v5 so installed copies pick
+  up the corrected engine.

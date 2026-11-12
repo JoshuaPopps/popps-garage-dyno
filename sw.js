@@ -1,7 +1,7 @@
 /* Popps's Garage Dyno service worker — caches the app shell so the
  * dyno works offline in the garage. Plain JavaScript, no runtime
  * download, no network at all. Version the cache name on release. */
-var CACHE = 'garage-dyno-v4';
+var CACHE = 'garage-dyno-v5';
 var ASSETS = [
   './', './index.html', './dyno.js', './app.js', './styles.css',
   './manifest.webmanifest',

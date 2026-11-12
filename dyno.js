@@ -51,8 +51,8 @@ const DATA = {
    "family": "Knucklehead",
    "variant": "61 (EL)",
    "years": "1936–1947",
-   "disp_ci": 60.3,
-   "disp_cc": 989,
+   "disp_ci": 61,
+   "disp_cc": 1000,
    "compression": 7.0,
    "stock_hp": 40,
    "stock_hp_rpm": 4800,
@@ -62,14 +62,14 @@ const DATA = {
    "redline": 5500,
    "stock_carb": "linkert-m74b",
    "stock_cam": "stock-knuckle",
-   "source": "EL 40 hp @ 4,800 (Bobber Brothers; Wikipedia / Knucklehead engine). No torque figure was ever published — peak torque estimated from HP (see tq_estimated)."
+   "source": "EL 40 hp @ 4,800 (Bobber Brothers; Wikipedia / Knucklehead engine). Displacement 61 Cu. In. (1000 c.c.) — 1940–47 Knucklehead Service Manual. No torque figure was ever published — peak torque estimated from HP (see tq_estimated)."
   },
   "knuckle-74": {
    "family": "Knucklehead",
    "variant": "74 (FL)",
    "years": "1941–1947",
-   "disp_ci": 73.7,
-   "disp_cc": 1208,
+   "disp_ci": 74,
+   "disp_cc": 1200,
    "compression": 7.0,
    "stock_hp": 48,
    "stock_hp_rpm": 5000,
@@ -79,7 +79,7 @@ const DATA = {
    "redline": 5500,
    "stock_carb": "linkert-m74b",
    "stock_cam": "stock-knuckle",
-   "source": "FL 48 hp @ 5,000 (Bobber Brothers; J3 Helmets 1940 specs). No torque figure was ever published — peak torque estimated from HP (see tq_estimated)."
+   "source": "FL 48 hp @ 5,000 (Bobber Brothers; J3 Helmets 1940 specs). Displacement 74 Cu. In. (1200 c.c.) — 1940–47 Knucklehead Service Manual. No torque figure was ever published — peak torque estimated from HP (see tq_estimated)."
   },
   "panhead-74-fl": {
    "family": "Panhead",
@@ -136,14 +136,14 @@ const DATA = {
    "disp_ci": 81.6,
    "disp_cc": 1337,
    "compression": 8.5,
-   "stock_hp": 71,
+   "stock_hp": 69,
    "stock_hp_rpm": 5000,
-   "stock_tq": 82.5,
+   "stock_tq": 82,
    "stock_tq_rpm": 3600,
    "redline": 5500,
    "stock_carb": "cv40",
    "stock_cam": "stock-evo",
-   "source": "71 hp @ 5,000 is a spec-database figure (MotorcycleSpecs 1984 FLHTC) — H-D published NO factory hp for the Evo Big Twin. Torque 82.5 lb-ft @ 3,600 (FLHTC)."
+   "source": "69 hp @ 5,000 / 82 lb-ft @ 3,600 — factory figures, 1997–98 Softail Factory Service Manual #99482-98 §1 spec table (bore 3.498 in., stroke 4.250 in., 80 ci / 1340 cc, compression 8.5:1)."
   },
   "evo-sport-883": {
    "family": "Evolution Sportster",
@@ -375,8 +375,8 @@ const DATA = {
     "Evolution Sportster",
     "Twin Cam 88"
    ],
-   "bore_note": "Measured venturi 1.535 in (39.0 mm); nominal 40 mm.",
-   "source": "Nightrider CV mods page; flow 185 CFM: Mikuni/Sudco tuning manual, 4th ed. Venturi measured: Carb Shoot 3 (bwoltz, 2008)."
+   "bore_note": "Measured venturi 1.535 in (39.0 mm); nominal 40 mm. Factory jetting, 49-state (#99482-98 §4): main 170, slow 42; float 0.413–0.453 in.; idle 1000–1050 rpm.",
+   "source": "Nightrider CV mods page; flow 185 CFM: Mikuni/Sudco tuning manual, 4th ed. Venturi measured: Carb Shoot 3 (bwoltz, 2008). Factory jetting / float / idle: 1997–98 Softail FSM #99482-98 §4."
   },
   "cv44": {
    "name": "Keihin CV44 (Screamin' Eagle)",
@@ -464,8 +464,8 @@ const DATA = {
     "Evolution Sportster",
     "Twin Cam"
    ],
-   "bore_note": "Venturi 1-9/16 in; bore 1-7/8 in.",
-   "source": "S&S Instruction 51-1012 (no absolute CFM published)."
+   "bore_note": "Venturi 1-9/16 in; bore 1-7/8 in. S&S baseline (510-0245): intermediate jet .0295, main jet .072, mixture screw 1¼ turns out; idle 950–1050 rpm.",
+   "source": "S&S Instruction 51-1012 (no absolute CFM published). Baseline jets / screw / idle: S&S 510-0245."
   },
   "ss-g": {
    "name": "S&S Super G",
@@ -2932,7 +2932,7 @@ const DATA = {
    "name": "Pump gas (91 octane)",
    "hp": 1.0,
    "tq": 1.0,
-   "note": "Baseline fuel."
+   "note": "Baseline fuel. Factory minimum is 87 pump octane or higher (#99482-98) — 91 octane is within spec."
   },
   "race": {
    "name": "Race gas (100+ octane)",
