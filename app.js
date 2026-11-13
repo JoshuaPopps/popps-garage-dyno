@@ -177,30 +177,30 @@ function chartSvg(series) {
     var hpV = Math.round(maxHp * (1 - frac));
     var tqV = Math.round(maxTq * (1 - frac));
     parts.push('<line x1="' + PL + '" y1="' + y + '" x2="' + (W - PR) + '" y2="' + y +
-      '" stroke="#d7c392" stroke-width="1"/>');
+      '" stroke="rgba(255,255,255,.055)" stroke-width="1"/>');
     parts.push('<text x="' + (PL - 6) + '" y="' + (y + 6) +
-      '" font-size="17" fill="#484236" text-anchor="end">' + hpV + "</text>");
+      '" font-size="17" fill="#9a9aa6" text-anchor="end">' + hpV + "</text>");
     parts.push('<text x="' + (W - PR + 6) + '" y="' + (y + 6) +
-      '" font-size="17" fill="#484236" text-anchor="start">' + tqV + "</text>");
+      '" font-size="17" fill="#9a9aa6" text-anchor="start">' + tqV + "</text>");
   }
   parts.push('<text x="' + (PL - 6) + '" y="' + (PT - 6) +
-    '" font-size="17" font-weight="bold" fill="#bd3d1e">HP</text>');
+    '" font-size="17" font-weight="bold" fill="#c4a6ff">HP</text>');
   parts.push('<text x="' + (W - PR + 6) + '" y="' + (PT - 6) +
-    '" font-size="17" font-weight="bold" fill="#185a40">TQ</text>');
+    '" font-size="17" font-weight="bold" fill="#ededf2">TQ</text>');
   for (var rpm = 2000; rpm <= maxRpm; rpm += 1000) {
     parts.push('<text x="' + Math.round(X(rpm)) + '" y="' + (H - 14) +
-      '" font-size="16" fill="#484236" text-anchor="middle">' + rpm + "</text>");
+      '" font-size="16" fill="#9a9aa6" text-anchor="middle">' + rpm + "</text>");
   }
   parts.push('<text x="' + Math.round((PL + W - PR) / 2) + '" y="' + (H - 32) +
-    '" font-size="16" fill="#484236" text-anchor="middle">rpm</text>');
+    '" font-size="16" fill="#9a9aa6" text-anchor="middle">rpm</text>');
   for (var k = 0; k < series.length; k++) {
     var r = series[k][1], hpC = series[k][2], tqC = series[k][3];
     var dashed = series[k][4];
     var dash = dashed ? ' stroke-dasharray="7 5"' : "";
     var hpPts = r.curve.map(function (p) { return Math.round(X(p[0])) + "," + Math.round(Yhp(p[2])); }).join(" ");
     var tqPts = r.curve.map(function (p) { return Math.round(X(p[0])) + "," + Math.round(Ytq(p[1])); }).join(" ");
-    parts.push('<polyline points="' + hpPts + '" fill="none" stroke="' + hpC + '" stroke-width="3.5"' + dash + "/>");
-    parts.push('<polyline points="' + tqPts + '" fill="none" stroke="' + tqC + '" stroke-width="3.5"' + dash + "/>");
+    parts.push('<polyline points="' + hpPts + '" fill="none" stroke="' + hpC + '" stroke-width="3"' + dash + "/>");
+    parts.push('<polyline points="' + tqPts + '" fill="none" stroke="' + tqC + '" stroke-width="2.5"' + dash + "/>");
     parts.push('<circle cx="' + Math.round(X(r.peak_hp_rpm)) + '" cy="' + Math.round(Yhp(r.peak_hp)) +
       '" r="6" fill="' + hpC + '"/>');
     parts.push('<circle cx="' + Math.round(X(r.peak_tq_rpm)) + '" cy="' + Math.round(Ytq(r.peak_tq)) +
@@ -224,16 +224,16 @@ function resultHtml(r, tempF, altFt, title) {
     "not a dyno sheet. Stock baseline: " + esc(r.variant) + ". Source: " + esc(r.source) + "</div>");
   html.push("<h3>" + esc(title) + "</h3>");
   html.push('<div class="big-numbers">');
-  html.push('<div class="big-number"><div class="value">' + f1(r.peak_hp) + " <small>hp</small></div>" +
+  html.push('<div class="big-number"><div class="value chrome-text">' + f1(r.peak_hp) + " <small>hp</small></div>" +
     '<div class="label">Peak horsepower</div>' +
     '<div class="sub">@ ' + r.peak_hp_rpm + " rpm (stock " + f1(stock.peak_hp) + ", " + signed(hpGain) + ")</div></div>");
-  html.push('<div class="big-number"><div class="value">' + f1(r.peak_tq) + " <small>ft-lb</small></div>" +
+  html.push('<div class="big-number"><div class="value chrome-text">' + f1(r.peak_tq) + " <small>ft-lb</small></div>" +
     '<div class="label">Peak torque</div>' +
     '<div class="sub">@ ' + r.peak_tq_rpm + " rpm (stock " + f1(stock.peak_tq) + ", " + signed(tqGain) + ")</div></div>");
   html.push("</div>");
-  html.push(chartSvg([["A", r, "#bd3d1e", "#185a40", false]]));
-  html.push('<p class="chart-legend"><span><span class="swatch" style="background:#bd3d1e"></span>' +
-    'Horsepower</span><span><span class="swatch" style="background:#185a40"></span>' +
+  html.push(chartSvg([["A", r, "#c4a6ff", "#ededf2", false]]));
+  html.push('<p class="chart-legend"><span><span class="swatch" style="background:#c4a6ff"></span>' +
+    'Horsepower</span><span><span class="swatch" style="background:#ededf2"></span>' +
     "Torque</span></p>");
   html.push('<div class="card"><h4>At ' + g(tempF) + " F / " +
     altFt.toLocaleString("en-US") +
@@ -291,13 +291,13 @@ function runCompare() {
   var html = [];
   html.push('<div class="estimate-banner">ESTIMATE — crank figures, not a dyno sheet.</div>');
   html.push(chartSvg([
-    ["A", ra, "#bd3d1e", "#185a40", false],
-    ["B", rb, "#704b08", "#0b0c09", true]
+    ["A", ra, "#c4a6ff", "#ededf2", false],
+    ["B", rb, "#9d6bff", "#9a9aa6", true]
   ]));
-  html.push('<p class="chart-legend"><span><span class="swatch" style="background:#bd3d1e"></span>' +
-    'A — horsepower</span><span><span class="swatch" style="background:#185a40"></span>' +
-    'A — torque</span><span><span class="swatch" style="background:#704b08"></span>' +
-    'B — horsepower</span><span><span class="swatch" style="background:#0b0c09"></span>' +
+  html.push('<p class="chart-legend"><span><span class="swatch" style="background:#c4a6ff"></span>' +
+    'A — horsepower</span><span><span class="swatch" style="background:#ededf2"></span>' +
+    'A — torque</span><span><span class="swatch" style="background:#9d6bff"></span>' +
+    'B — horsepower</span><span><span class="swatch" style="background:#9a9aa6"></span>' +
     "B — torque</span></p>");
   html.push('<table><tr><th></th><th class="num">Combo A</th><th class="num">Combo B</th>' +
     '<th class="num">Difference</th></tr>');
