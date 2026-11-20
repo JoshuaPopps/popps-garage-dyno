@@ -3272,6 +3272,122 @@ function compare(comboA, comboB) {
   }];
 }
 
+// ---------------------------------------------------------------- run history
+//
+// Saved runs live on the device (localStorage in the UI — see app.js).
+// These are pure helpers over plain arrays, so the engine tests can
+// exercise them without a browser. A run record is a plain object:
+//
+//   { id, savedAt (ISO string), label, combo, peak_hp, peak_hp_rpm,
+//     peak_tq, peak_tq_rpm, tempF, altFt }
+//
+// peak_hp / peak_tq are the CORRECTED (standard-day) estimates — the
+// same numbers the Dyno tab shows big. The conditions the run was made
+// in (tempF/altFt) ride along for context. Everything stays labeled
+// ESTIMATE in the UI; a saved run is not a dyno sheet.
+
+var HISTORY_MAX_RUNS = 50;
+
+function historyLabel(combo) {
+  var b = DATA.BASELINES[combo.baseline];
+  var parts = [b.family + " — " + b.variant];
+  var carb = combo.carb && DATA.CARBS[combo.carb];
+  var cam = combo.cam && DATA.CAMS[combo.cam];
+  if (carb) parts.push(carb.name);
+  if (cam) parts.push(cam.name);
+  if (combo.exhaust && combo.exhaust !== "stock" && DATA.EXHAUSTS[combo.exhaust])
+    parts.push(DATA.EXHAUSTS[combo.exhaust].name);
+  if (combo.displacement_ci && Math.abs(combo.displacement_ci - b.disp_ci) > 0.5)
+    parts.push(combo.displacement_ci + " ci");
+  return parts.join(" · ");
+}
+
+function makeRunRecord(combo, result, savedAt, tempF, altFt) {
+  if (!combo || !DATA.BASELINES[combo.baseline]) {
+    throw new Error("cannot save a run: unknown baseline");
+  }
+  if (!result || !(result.peak_hp > 0) || !(result.peak_tq > 0)) {
+    throw new Error("cannot save a run: no result to save");
+  }
+  var at = savedAt || new Date().toISOString();
+  if (isNaN(Date.parse(at))) throw new Error("cannot save a run: bad date");
+  return {
+    id: "r" + Date.now().toString(36) + Math.floor(Math.random() * 0x100000).toString(36),
+    savedAt: at,
+    label: historyLabel(combo),
+    combo: {
+      baseline: combo.baseline,
+      displacement_ci: combo.displacement_ci || null,
+      compression: combo.compression || null,
+      carb: combo.carb || null,
+      cam: combo.cam || null,
+      exhaust: combo.exhaust || "stock",
+      heads: combo.heads || "stock",
+      air: combo.air || "stock",
+      fuel: combo.fuel || "pump",
+      rev_limit: combo.rev_limit || null
+    },
+    peak_hp: roundTo(result.peak_hp, 1),
+    peak_hp_rpm: result.peak_hp_rpm,
+    peak_tq: roundTo(result.peak_tq, 1),
+    peak_tq_rpm: result.peak_tq_rpm,
+    tempF: (tempF === undefined || tempF === null) ? 77 : tempF,
+    altFt: (altFt === undefined || altFt === null) ? 0 : altFt
+  };
+}
+
+function historyValidRecord(rec) {
+  return !!rec && typeof rec.id === "string" && !!rec.id &&
+    typeof rec.savedAt === "string" && !isNaN(Date.parse(rec.savedAt)) &&
+    typeof rec.peak_hp === "number" && rec.peak_hp > 0 &&
+    typeof rec.peak_tq === "number" && rec.peak_tq > 0 &&
+    !!rec.combo && !!DATA.BASELINES[rec.combo.baseline];
+}
+
+function historySorted(runs) {
+  return runs.slice().sort(function (a, b) {
+    return Date.parse(a.savedAt) - Date.parse(b.savedAt);
+  });
+}
+
+function historyAdd(runs, record) {
+  if (!historyValidRecord(record)) {
+    throw new Error("cannot save a run: record is incomplete");
+  }
+  var next = historySorted(runs.concat([record]));
+  // Cap the list so localStorage never grows without bound; the
+  // oldest runs go first.
+  while (next.length > HISTORY_MAX_RUNS) next.shift();
+  return next;
+}
+
+function historyDelete(runs, id) {
+  return runs.filter(function (r) { return r.id !== id; });
+}
+
+function historyChartSeries(runs) {
+  var sorted = historySorted(runs.filter(historyValidRecord));
+  var hp = sorted.map(function (r) { return r.peak_hp; });
+  var tq = sorted.map(function (r) { return r.peak_tq; });
+  var labels = sorted.map(function (r) {
+    var d = new Date(r.savedAt);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  });
+  var hpGain = 0, tqGain = 0, hpGainPct = 0, tqGainPct = 0;
+  if (sorted.length > 1) {
+    hpGain = roundTo(hp[hp.length - 1] - hp[0], 1);
+    tqGain = roundTo(tq[tq.length - 1] - tq[0], 1);
+    hpGainPct = roundTo(100.0 * hpGain / hp[0], 1);
+    tqGainPct = roundTo(100.0 * tqGain / tq[0], 1);
+  }
+  return {
+    labels: labels, hp: hp, tq: tq,
+    hpGain: hpGain, tqGain: tqGain,
+    hpGainPct: hpGainPct, tqGainPct: tqGainPct,
+    count: sorted.length
+  };
+}
+
 // ---------------------------------------------------------------- SAE
 
 function pressureKpa(altitudeFt) {
@@ -3363,6 +3479,14 @@ if (typeof module !== "undefined" && module.exports) {
     saeCorrectionFactor: saeCorrectionFactor,
     applySae: applySae,
     pressureKpa: pressureKpa,
-    validateData: validateData
+    validateData: validateData,
+    HISTORY_MAX_RUNS: HISTORY_MAX_RUNS,
+    historyLabel: historyLabel,
+    makeRunRecord: makeRunRecord,
+    historyValidRecord: historyValidRecord,
+    historySorted: historySorted,
+    historyAdd: historyAdd,
+    historyDelete: historyDelete,
+    historyChartSeries: historyChartSeries
   };
 }

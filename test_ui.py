@@ -3,9 +3,12 @@
 
 Drives index.html in headless Chromium (Playwright) and proves the
 plain-JavaScript app actually runs: presets load, the dyno renders
-results and a chart, compare works, the catalog renders, and no page
-errors fire. The app makes no external requests at all — no CDN, no
-server — so the test needs nothing but localhost.
+results and a chart, compare works, the catalog renders, run history
+saves two runs and deletes one, and no page errors fire. The app's
+only external request is the Google Fonts stylesheet (progressive
+enhancement — every font stack falls back to system fonts); everything
+else is localhost, so the test needs nothing but localhost plus a
+tolerance for the font hosts (see main()).
 
 Requires: playwright + chromium (one-time setup, NOT shipped with the
 app — see TESTING.md):
@@ -41,6 +44,18 @@ def main():
     url = "http://127.0.0.1:%d/" % port
     errors = []
     failed_requests = []
+    # The app's only external request is the Google Fonts stylesheet —
+    # a progressive enhancement (every font stack has a system
+    # fallback). The test sandbox proxy cannot reach Google Fonts, so
+    # font-host failures are tolerated; every same-origin asset stays
+    # strict. A "Failed to load resource" console line is always
+    # accompanied by a requestfailed event with the URL, so the URL
+    # list below is the real coverage and the console copy is skipped.
+    font_hosts = ("fonts.googleapis.com", "fonts.gstatic.com")
+
+    def _is_font_url(u):
+        return any(h in u for h in font_hosts)
+
     try:
         with sync_playwright() as p:
             # Plain JS, no CDN: nothing external is fetched, so no
@@ -49,10 +64,12 @@ def main():
             page = browser.new_page(viewport={"width": 800, "height": 900})
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.on("console", lambda m: errors.append(m.text)
-                    if m.type == "error" else None)
-            page.on("requestfailed", lambda r: failed_requests.append(r.url))
+                    if m.type == "error"
+                    and not m.text.startswith("Failed to load resource") else None)
+            page.on("requestfailed", lambda r: failed_requests.append(r.url)
+                    if not _is_font_url(r.url) else None)
             page.on("response", lambda r: failed_requests.append(r.url)
-                    if r.status >= 400 else None)
+                    if r.status >= 400 and not _is_font_url(r.url) else None)
             page.goto(url, wait_until="load")
             # The app renders synchronously on load (no runtime download).
             page.wait_for_selector("#results-a .big-number", timeout=30000)
@@ -90,7 +107,9 @@ def main():
             page.click("#run-compare")
             page.wait_for_selector("#results-compare table", timeout=10000)
             ctext = page.inner_text("#results-compare")
-            assert "Difference" in ctext, "compare table missing"
+            # Table headers are uppercased by the stylesheet, so compare
+            # case-insensitively (same as the HP label check in step 1).
+            assert "difference" in ctext.lower(), "compare table missing"
             assert "+" in ctext, "B should beat A: %r" % ctext[:300]
             assert page.query_selector("#results-compare svg.chart"), "no compare chart"
 
@@ -118,6 +137,36 @@ def main():
             assert any("Mega 8" in l for l in labels), "M8 cam missing: %r" % labels
             assert not any("EV27" in l for l in labels), "Evo cam leaked into M8 list"
 
+            # 9. History: save two runs, chart + rows render, delete works.
+            # (Fresh browser profile, so history starts empty.)
+            page.click(".nav button[data-view='view-history']")
+            assert "No saved runs yet" in page.inner_text("#history-content"), \
+                "history should start empty in a fresh profile"
+            page.click(".nav button[data-view='view-dyno']")
+            page.click("#run-a")
+            page.wait_for_selector("#save-run", timeout=10000)
+            page.click("#save-run")
+            page.wait_for_selector("#save-run-note >> text=Saved", timeout=10000)
+            page.select_option("#a-carb", "hsr48")
+            page.click("#run-a")
+            page.wait_for_selector("#save-run:not([disabled])", timeout=10000)
+            page.click("#save-run")
+            page.wait_for_selector("#save-run-note >> text=Saved", timeout=10000)
+            page.click(".nav button[data-view='view-history']")
+            page.wait_for_selector("#history-content svg.chart", timeout=10000)
+            htext = page.inner_text("#history-content")
+            assert "First saved run to latest" in htext, "gain line missing: %r" % htext[:300]
+            assert "ESTIMATE" in htext, "history must stay labeled ESTIMATE"
+            rows = page.query_selector_all("#history-content table tr")
+            assert len(rows) == 3, "history table should have 2 runs + header, got %d" % len(rows)
+            page.on("dialog", lambda d: d.accept())
+            page.click("#history-content button[data-delete-run]")
+            page.wait_for_timeout(500)
+            rows = page.query_selector_all("#history-content table tr")
+            assert len(rows) == 2, "one run should remain after delete, got %d" % len(rows)
+            assert "No saved runs yet" not in page.inner_text("#history-content"), \
+                "one run should still be listed"
+
             browser.close()
     finally:
         httpd.shutdown()
@@ -125,7 +174,8 @@ def main():
     assert not errors, "page/console errors: %r" % errors
     assert not failed_requests, "failed requests: %r" % failed_requests
     print("UI test passed: presets, run, SAE, compare, catalog, about, "
-          "cam filtering — no page errors, no failed requests.")
+          "cam filtering, history (save two runs, chart, delete) — "
+          "no page errors, no failed requests.")
 
 
 if __name__ == "__main__":

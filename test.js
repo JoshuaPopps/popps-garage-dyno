@@ -13,7 +13,8 @@
  * curves rise then fall), mod behavior (bigger carb/cam/exhaust gain
  * power and move the peak up; drag pipes cost low-end torque), SAE
  * correction (Phoenix summer costs power; standard day is ~0.97),
- * A/B compare math, and unsupported-family handling.
+ * A/B compare math, run-history storage (save, date ordering, delete,
+ * chart series and gains, 50-run cap), and unsupported-family handling.
  */
 "use strict";
 const assert = require("node:assert/strict");
@@ -226,6 +227,93 @@ test("preset combos estimate", () => {
     assert.ok(r.peak_hp > 0, name);
     assert.ok(r.peak_tq > 0, name);
   }
+});
+
+// ---------------------------------------------------------------- history
+test("makeRunRecord keeps combo and result", () => {
+  const combo = stockCombo("evo-1340");
+  const r = estimate(combo);
+  const rec = dyno.makeRunRecord(combo, r, "2026-11-19T12:00:00.000Z", 77, 0);
+  assert.equal(rec.savedAt, "2026-11-19T12:00:00.000Z");
+  assert.equal(rec.peak_hp, r.peak_hp);
+  assert.equal(rec.peak_tq, r.peak_tq);
+  assert.equal(rec.peak_hp_rpm, r.peak_hp_rpm);
+  assert.equal(rec.combo.baseline, "evo-1340");
+  assert.ok(rec.label.includes("1340"), rec.label);
+  assert.ok(rec.label.includes("Keihin CV40"), rec.label);
+  assert.equal(rec.tempF, 77);
+  assert.equal(rec.altFt, 0);
+  assert.ok(rec.id);
+});
+test("makeRunRecord rejects a run with no result", () => {
+  assert.throws(() => dyno.makeRunRecord(stockCombo("evo-1340"), null, "2026-11-19T12:00:00.000Z"), Error);
+  assert.throws(() => dyno.makeRunRecord({ baseline: "nope" }, estimate(stockCombo("evo-1340")), "2026-11-19T12:00:00.000Z"), Error);
+  assert.throws(() => dyno.makeRunRecord(stockCombo("evo-1340"), estimate(stockCombo("evo-1340")), "not-a-date"), Error);
+});
+test("historyAdd orders by saved date", () => {
+  const combo = stockCombo("evo-1340");
+  const r = estimate(combo);
+  const a = dyno.makeRunRecord(combo, r, "2026-11-20T12:00:00.000Z");
+  const b = dyno.makeRunRecord(combo, r, "2026-11-19T12:00:00.000Z");
+  const runs = dyno.historyAdd(dyno.historyAdd([], a), b);
+  assert.equal(runs.length, 2);
+  assert.equal(runs[0].savedAt, "2026-11-19T12:00:00.000Z");
+  assert.equal(runs[1].savedAt, "2026-11-20T12:00:00.000Z");
+});
+test("historyAdd rejects an incomplete record", () => {
+  assert.throws(() => dyno.historyAdd([], { id: "x" }), Error);
+  assert.throws(() => dyno.historyAdd([], {
+    id: "x", savedAt: "not-a-date", peak_hp: 70, peak_tq: 80,
+    combo: { baseline: "evo-1340" }
+  }), Error);
+  assert.throws(() => dyno.historyAdd([], {
+    id: "x", savedAt: "2026-11-19T12:00:00.000Z", peak_hp: 0, peak_tq: 80,
+    combo: { baseline: "evo-1340" }
+  }), Error);
+});
+test("historyDelete removes only the named run", () => {
+  const combo = stockCombo("evo-1340");
+  const r = estimate(combo);
+  const a = dyno.makeRunRecord(combo, r, "2026-11-19T12:00:00.000Z");
+  const b = dyno.makeRunRecord(combo, r, "2026-11-20T12:00:00.000Z");
+  const runs = dyno.historyAdd(dyno.historyAdd([], a), b);
+  const kept = dyno.historyDelete(runs, a.id);
+  assert.equal(kept.length, 1);
+  assert.equal(kept[0].id, b.id);
+  assert.equal(dyno.historyDelete(runs, "no-such-id").length, 2);
+});
+test("historyChartSeries orders by date and gains vs first run", () => {
+  const base = stockCombo("evo-1340");
+  const stock = estimate(base);
+  const hot = estimate(Object.assign({}, base, { carb: "hsr48", exhaust: "two-into-1" }));
+  const a = dyno.makeRunRecord(base, stock, "2026-11-19T12:00:00.000Z");
+  const b = dyno.makeRunRecord(Object.assign({}, base, { carb: "hsr48", exhaust: "two-into-1" }), hot, "2026-11-20T12:00:00.000Z");
+  const s = dyno.historyChartSeries([b, a]); // deliberately out of order
+  assert.equal(s.count, 2);
+  assert.deepEqual(s.hp, [stock.peak_hp, hot.peak_hp]);
+  assert.deepEqual(s.tq, [stock.peak_tq, hot.peak_tq]);
+  assert.ok(s.hpGain > 0, "HSR48 + 2-into-1 should gain HP");
+  assert.ok(s.hpGainPct > 0);
+  assert.equal(s.labels.length, 2);
+});
+test("historyChartSeries empty is zeros", () => {
+  const s = dyno.historyChartSeries([]);
+  assert.deepEqual(s.hp, []);
+  assert.deepEqual(s.tq, []);
+  assert.deepEqual(s.labels, []);
+  assert.equal(s.count, 0);
+  assert.equal(s.hpGain, 0);
+  assert.equal(s.tqGain, 0);
+});
+test("history caps at HISTORY_MAX_RUNS, oldest first", () => {
+  const combo = stockCombo("evo-1340");
+  const r = estimate(combo);
+  let runs = [];
+  for (let i = 0; i < dyno.HISTORY_MAX_RUNS + 5; i++) {
+    const day = String(1 + (i % 28)).padStart(2, "0");
+    runs = dyno.historyAdd(runs, dyno.makeRunRecord(combo, r, "2026-11-" + day + "T12:00:00.000Z"));
+  }
+  assert.equal(runs.length, dyno.HISTORY_MAX_RUNS);
 });
 
 console.log(passed + " tests passed, 0 failed");

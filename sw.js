@@ -1,7 +1,7 @@
 /* Pocket Garage Dyno service worker — caches the app shell so the
  * dyno works offline in the garage. Plain JavaScript, no runtime
  * download, no network at all. Version the cache name on release. */
-var CACHE = 'garage-dyno-v9';
+var CACHE = 'garage-dyno-v10';
 var ASSETS = [
   './', './index.html', './dyno.js', './app.js', './styles.css',
   './manifest.webmanifest',

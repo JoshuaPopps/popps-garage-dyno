@@ -21,6 +21,28 @@ function esc(s) {
 function g(x) { return String(Number(x.toPrecision(6))); }
 function f1(x) { return x.toFixed(1); }
 
+// ---------------- run history (on-device) ----------------
+
+/* Saved runs live in localStorage only — no account, no cloud, no
+ * upload. Same pattern as the other Pocket Garage tools: a plain JSON
+ * array under one versioned key. */
+var HISTORY_KEY = "pocket-garage-dyno-runs-v1";
+var lastRun = null; /* {combo, result, tempF, altFt} from the latest run */
+
+function loadRuns() {
+  try {
+    var raw = window.localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    var parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(historyValidRecord);
+  } catch (e) { return []; }
+}
+
+function saveRuns(runs) {
+  try { window.localStorage.setItem(HISTORY_KEY, JSON.stringify(runs)); } catch (e) {}
+}
+
 // ---------------- form fill ----------------
 
 function fillSelect(id, items, selected) {
@@ -210,6 +232,115 @@ function chartSvg(series) {
   return parts.join("");
 }
 
+// ---------------- history chart ----------------
+
+/* Peak HP and torque across saved runs — the build's power curve over
+ * time. Dual axes like the run chart (HP left, TQ right); x is run
+ * order, labeled with the saved date. Same 1990 Treatment palette:
+ * HP purple-bright, TQ chrome. */
+function historyChartSvg(runs) {
+  var s = historyChartSeries(runs);
+  var n = s.count;
+  var W = 560, H = 320, PL = 62, PR = 62, PT = 26, PB = 56;
+  var maxHp = Math.max.apply(null, s.hp.concat([1])) * 1.12;
+  var maxTq = Math.max.apply(null, s.tq.concat([1])) * 1.12;
+  function X(i) {
+    if (n <= 1) return (PL + W - PR) / 2;
+    return PL + i / (n - 1) * (W - PL - PR);
+  }
+  function Yhp(hp) { return PT + (1 - hp / maxHp) * (H - PT - PB); }
+  function Ytq(tq) { return PT + (1 - tq / maxTq) * (H - PT - PB); }
+
+  var parts = ['<svg class="chart" viewBox="0 0 ' + W + " " + H +
+    '" role="img" aria-label="Saved-run history: peak horsepower and torque over time">'];
+  for (var i = 0; i < 5; i++) {
+    var frac = i / 4.0;
+    var y = Math.round(PT + frac * (H - PT - PB));
+    var hpV = Math.round(maxHp * (1 - frac));
+    var tqV = Math.round(maxTq * (1 - frac));
+    parts.push('<line x1="' + PL + '" y1="' + y + '" x2="' + (W - PR) + '" y2="' + y +
+      '" stroke="rgba(255,255,255,.055)" stroke-width="1"/>');
+    parts.push('<text x="' + (PL - 6) + '" y="' + (y + 6) +
+      '" font-size="17" fill="#9a9aa6" text-anchor="end">' + hpV + "</text>");
+    parts.push('<text x="' + (W - PR + 6) + '" y="' + (y + 6) +
+      '" font-size="17" fill="#9a9aa6" text-anchor="start">' + tqV + "</text>");
+  }
+  parts.push('<text x="' + (PL - 6) + '" y="' + (PT - 6) +
+    '" font-size="17" font-weight="bold" fill="#c4a6ff">HP</text>');
+  parts.push('<text x="' + (W - PR + 6) + '" y="' + (PT - 6) +
+    '" font-size="17" font-weight="bold" fill="#ededf2">TQ</text>');
+  /* Date labels under each point, thinned when there are many runs. */
+  var step = Math.max(1, Math.ceil(n / 6));
+  for (var j = 0; j < n; j++) {
+    if (j % step !== 0 && j !== n - 1) continue;
+    parts.push('<text x="' + Math.round(X(j)) + '" y="' + (H - 14) +
+      '" font-size="15" fill="#9a9aa6" text-anchor="middle">' + esc(s.labels[j]) + "</text>");
+  }
+  parts.push('<text x="' + Math.round((PL + W - PR) / 2) + '" y="' + (H - 34) +
+    '" font-size="16" fill="#9a9aa6" text-anchor="middle">saved runs</text>');
+  var hpPts = s.hp.map(function (v, k) { return Math.round(X(k)) + "," + Math.round(Yhp(v)); }).join(" ");
+  var tqPts = s.tq.map(function (v, k) { return Math.round(X(k)) + "," + Math.round(Ytq(v)); }).join(" ");
+  if (n > 1) {
+    parts.push('<polyline points="' + hpPts + '" fill="none" stroke="#c4a6ff" stroke-width="3.5"/>');
+    parts.push('<polyline points="' + tqPts + '" fill="none" stroke="#ededf2" stroke-width="3.5"/>');
+  }
+  for (var m = 0; m < n; m++) {
+    parts.push('<circle cx="' + Math.round(X(m)) + '" cy="' + Math.round(Yhp(s.hp[m])) +
+      '" r="6" fill="#c4a6ff"/>');
+    parts.push('<circle cx="' + Math.round(X(m)) + '" cy="' + Math.round(Ytq(s.tq[m])) +
+      '" r="6" fill="#ededf2"/>');
+  }
+  parts.push("</svg>");
+  return parts.join("");
+}
+
+function renderHistory() {
+  var host = el("history-content");
+  if (!host) return;
+  var runs = loadRuns();
+  var html = [];
+  html.push('<div class="estimate-banner">ESTIMATE — every saved run is an ' +
+    "estimate, not a dyno sheet. Peak figures are corrected " +
+    "(standard-day) numbers, the same ones the Dyno tab shows big.</div>");
+  if (!runs.length) {
+    html.push('<div class="card"><p>No saved runs yet. Run the dyno, ' +
+      "then tap <strong>Save this run</strong> under the results — " +
+      "each saved run lands here with its combo and its numbers, and " +
+      "the chart shows the power climbing as the build progresses.</p></div>");
+    host.innerHTML = html.join("");
+    return;
+  }
+  var s = historyChartSeries(runs);
+  html.push(historyChartSvg(runs));
+  html.push('<p class="chart-legend"><span><span class="swatch" style="background:#c4a6ff"></span>' +
+    'Peak horsepower</span><span><span class="swatch" style="background:#ededf2"></span>' +
+    "Peak torque</span></p>");
+  if (s.count > 1) {
+    var hpSign = s.hpGain >= 0 ? "+" : "";
+    var tqSign = s.tqGain >= 0 ? "+" : "";
+    html.push("<p><strong>First saved run to latest: " + hpSign + f1(s.hpGain) + " hp (" +
+      hpSign + f1(s.hpGainPct) + "%) / " + tqSign + f1(s.tqGain) + " ft-lb (" +
+      tqSign + f1(s.tqGainPct) + "%)</strong> — estimates, not a dyno sheet.</p>");
+  }
+  html.push("<table><tr><th>Date</th><th>Combo</th>" +
+    '<th class="num">Peak HP</th><th class="num">Peak TQ</th><th></th></tr>');
+  var sorted = historySorted(runs).slice().reverse(); /* newest first */
+  for (var i = 0; i < sorted.length; i++) {
+    var r = sorted[i];
+    var d = new Date(r.savedAt);
+    var date = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    html.push("<tr><td>" + esc(date) + "</td><td>" + esc(r.label) + "</td>" +
+      '<td class="num">' + f1(r.peak_hp) + " @ " + r.peak_hp_rpm + " rpm</td>" +
+      '<td class="num">' + f1(r.peak_tq) + " @ " + r.peak_tq_rpm + " rpm</td>" +
+      '<td class="num"><button type="button" class="danger" data-delete-run="' + esc(r.id) + '">Delete</button></td></tr>');
+  }
+  html.push("</table>");
+  html.push('<p class="muted">Runs stay on this device only — nothing is ' +
+    "uploaded anywhere. The list holds the " + HISTORY_MAX_RUNS +
+    " most recent runs; older ones drop off as new ones are saved.</p>");
+  host.innerHTML = html.join("");
+}
+
 // ---------------- results ----------------
 
 function resultHtml(r, tempF, altFt, title) {
@@ -272,6 +403,24 @@ function runDyno() {
   var tempF = num("a-temp", 77);
   var altFt = num("a-alt", 0);
   el("results-a").innerHTML = resultHtml(r, tempF, altFt, r.family + " — " + r.variant);
+  lastRun = { combo: readCombo("a"), result: r, tempF: tempF, altFt: altFt };
+  var row = document.createElement("div");
+  row.innerHTML = '<button type="button" class="secondary" id="save-run">Save this run to history</button> ' +
+    '<span class="muted" id="save-run-note"></span>';
+  el("results-a").appendChild(row);
+  el("save-run").addEventListener("click", function () {
+    try {
+      var runs = historyAdd(loadRuns(), makeRunRecord(lastRun.combo, lastRun.result,
+        new Date().toISOString(), lastRun.tempF, lastRun.altFt));
+      saveRuns(runs);
+      el("save-run-note").textContent = "Saved — " + runs.length + " run" +
+        (runs.length === 1 ? "" : "s") + " in history.";
+      el("save-run").disabled = true;
+      renderHistory();
+    } catch (e) {
+      el("save-run-note").textContent = "Could not save: " + e.message;
+    }
+  });
   el("compare-a-summary").innerHTML =
     '<h4 style="margin-top:0">Combo A — ' + esc(r.family) + " " + esc(r.variant) + "</h4>" +
     "<p><strong>" + f1(r.peak_hp) + " hp @ " + r.peak_hp_rpm + " rpm / " + f1(r.peak_tq) +
@@ -417,6 +566,14 @@ function init() {
     row.appendChild(btn);
   }
   el("catalog").innerHTML = catalogHtml();
+  renderHistory();
+  el("history-content").addEventListener("click", function (event) {
+    var id = event.target.getAttribute && event.target.getAttribute("data-delete-run");
+    if (!id) return;
+    if (!window.confirm("Delete this saved run? It cannot be undone.")) return;
+    saveRuns(historyDelete(loadRuns(), id));
+    renderHistory();
+  });
   runDyno();
 
   el("run-a").addEventListener("click", runDyno);

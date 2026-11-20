@@ -1,4 +1,4 @@
-# Test notes — popps-garage-dyno v1.0.0
+# Test notes — popps-garage-dyno v1.0.4
 
 Tested 2026-11-11. The app is plain JavaScript — `index.html` +
 `dyno.js` (engine + catalogs) + `app.js` (UI) + `styles.css` +
@@ -25,7 +25,7 @@ HP rpm, peak torque, peak torque rpm, redline, and curve length
 (peak values within 0.15 of each other; the only differences are
 trailing-zero formatting, e.g. 71.0 vs 71).
 
-## Engine tests — `node test.js` (33 passed, 0 failed)
+## Engine tests — `node test.js` (41 passed, 0 failed)
 
 Run from the app directory; no dependencies, Node 18+:
 
@@ -53,6 +53,15 @@ Run from the app directory; no dependencies, Node 18+:
 - **Unsupported handling** — unknown baseline/carb/cam raise
   `UnsupportedError`; zero displacement raises `Error`.
 - **Presets** — all three example bikes estimate cleanly.
+- **Run history** — `makeRunRecord` keeps the combo and the result
+  numbers (peak HP/torque and their rpm, conditions) and builds a
+  human label (baseline + carb + cam); it throws with no result,
+  an unknown baseline, or a bad date. `historyAdd` orders by saved
+  date and rejects incomplete records. `historyDelete` removes only
+  the named run and no-ops on an unknown id. `historyChartSeries`
+  returns HP/torque arrays in date order with first-to-latest gains,
+  and zeros for an empty list. The list caps at 50 runs, oldest
+  first.
 
 ### Three real bugs the tests caught (fixed, not waived)
 
@@ -96,21 +105,37 @@ setup, not shipped). Run 2026-11-11 20:26 MST, passed in ~4 seconds
 7. About tab renders (SAE J1349).
 8. Cam select follows the baseline family: M8-107 shows M8 cams
    (Mega 8) and no Evo cams (EV27).
+9. History tab: starts empty in a fresh profile ("No saved runs
+   yet"); save a run from the Dyno tab, change the carb to HSR48 and
+   save again; the History tab shows the chart SVG, the "First saved
+   run to latest" gain line, and a 2-run table; deleting one run
+   leaves exactly one row and no empty-state text.
 
-Zero page errors, zero console errors, zero failed requests. The
+Zero page errors, zero console errors, zero failed requests (Google
+Fonts tolerated — see below). The
 test server log shows only local 200s — the page fetches nothing
-external.
+external except the font stylesheet.
 
 Two test bugs found by the run itself (fixed, not waived): the HP
 label assertion was case-sensitive while the stylesheet uppercases
 labels, and the SAE card formats altitude with a thousands separator
 ("1,100"), which the UI now does too.
 
+Two more surfaced with the v1.0.4 run (fixed, not waived): the
+compare-table "Difference" assertion was case-sensitive while the
+1990 Treatment uppercases `th` elements, so the check is now
+case-insensitive; and the test asserted zero failed requests while
+the Google Fonts stylesheet cannot load in this sandbox (the proxy
+tunnel fails for fonts.googleapis.com). The app's only external
+request is that font stylesheet — a progressive enhancement with
+system-font fallbacks — so `test_ui.py` now tolerates the font hosts
+only and keeps every same-origin asset strict.
+
 ## Static-server check (all 200)
 
 `python3 -m http.server` from the app directory; every shipped asset
-returned 200 with a sane size: `index.html`, `dyno.js` (79,112),
-`app.js` (20,401), `styles.css`, `sw.js`, `manifest.webmanifest`,
+returned 200 with a sane size: `index.html`, `dyno.js` (84,359),
+`app.js` (28,002), `styles.css`, `sw.js`, `manifest.webmanifest`,
 `icons/icon-192.png`, `icons/icon-512.png`, `icons/icon.svg`,
 `test.js`, `test_ui.py`, `README.md`. (`TESTING.md` 404s until this
 file is written — it is documentation, not an app asset.)
@@ -215,3 +240,38 @@ invented numbers:
   tests needed no changes — the calibration tests are generic and
   still pass 33/33. Cache bumped v4 → v5 so installed copies pick
   up the corrected engine.
+
+## v1.0.4 — run history (2026-11-20)
+
+- **New History tab.** A "Save this run" button under the Dyno
+  results stores the run on the device (localStorage, plain JSON
+  under a versioned key — no account, no cloud, nothing uploaded).
+  Each saved run keeps its combo (baseline, displacement,
+  compression, carb, cam, exhaust, heads, air, fuel, rev limit),
+  its corrected peak HP/torque with rpm, the conditions it was run
+  in, and the date. The History tab draws one chart — peak HP and
+  peak torque across saved runs, dual axes like the run chart, HP
+  purple-bright / TQ chrome — plus a first-to-latest gain line and a
+  table with a per-run Delete (confirm first). Empty state explains
+  itself. Every saved run stays labeled ESTIMATE.
+- **Engine:** pure history helpers in `dyno.js` (`makeRunRecord`,
+  `historyAdd`, `historyDelete`, `historyChartSeries`,
+  `historyLabel`, `HISTORY_MAX_RUNS = 50`) — the UI is a thin
+  localStorage wrapper over them, so the engine tests cover the
+  logic without a browser. The list caps at 50 runs, oldest first.
+- **Tests:** 8 new engine tests (record shape, bad-input throws,
+  date ordering, delete, chart series + gains, empty series, cap) —
+  `node test.js` now 41/41. The UI test gains a history flow (empty
+  state → save two runs → chart + gain line + 2-row table → delete
+  one → one row left) and still passes with zero page errors and
+  zero failed requests (fonts tolerated, see above).
+- **Two latent test bugs found while reconciling staging to live**
+  (the staging dir was still at v1.0.2; live had moved through the
+  v1.0.3 knowledge-base fixes and the 1990 Treatment restyle):
+  the compare-table "Difference" check was case-sensitive while the
+  restyle uppercases `th`, and the UI test asserted zero failed
+  requests while the sandbox proxy cannot reach Google Fonts. Both
+  fixed in the test, not waived — see the UI test section.
+- Cache bumped v9 → v10 so installed copies pick up the new tab.
+  A/B compare, SAE correction, baselines, carbs, cams, and presets
+  are untouched — the engine diff is history helpers only.

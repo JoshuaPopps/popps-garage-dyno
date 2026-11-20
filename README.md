@@ -32,6 +32,13 @@ combos before spending money, not for bragging rights.
   combo B you build here: same baseline with a different cam, stock
   pipes versus 2-into-1, whatever you want to settle. Dual curves and
   a delta table.
+- **History tab** — save any run under the Dyno results and it lands
+  here: peak horsepower and torque across saved runs on one chart, so
+  the power gain shows as the build progresses. Each run keeps its
+  combo (baseline, carb, cam, exhaust, displacement) and its date;
+  any run can be deleted. Runs live on this device only
+  (localStorage, 50 most recent) — nothing is uploaded anywhere, and
+  every saved run stays labeled ESTIMATE.
 - **Catalog tab** — every baseline, carb, and cam in the dyno with its
   published source. If a number isn't here, the dyno says so instead
   of guessing.
@@ -62,7 +69,7 @@ download and nothing to fetch from the network.
 To test after editing the engine:
 
 ```bash
-node test.js            # 33 engine tests, no dependencies
+node test.js            # 41 engine tests, no dependencies
 python3 test_ui.py      # real-browser UI test (Playwright, see TESTING.md)
 ```
 
@@ -179,10 +186,10 @@ rules it follows:
 
 | File | What it is |
 |---|---|
-| `index.html` | App shell (Dyno / Compare / Catalog / About) |
+| `index.html` | App shell (Dyno / Compare / History / Catalog / About) |
 | `dyno.js` | Engine + all catalogs (source of truth) |
-| `app.js` | UI — forms, charts, catalog tables, wiring |
-| `test.js` | 33 engine tests — `node test.js` |
+| `app.js` | UI — forms, charts, catalog tables, run history, wiring |
+| `test.js` | 41 engine tests — `node test.js` |
 | `test_ui.py` | Real-browser UI test (Playwright) — see TESTING.md |
 | `styles.css` | Shop-manual styling, big touch targets |
 | `sw.js` | Service worker — caches the app for offline use |
@@ -192,10 +199,10 @@ rules it follows:
 
 ## Testing
 
-See [TESTING.md](TESTING.md) for the full test log: 33 engine tests
+See [TESTING.md](TESTING.md) for the full test log: 41 engine tests
 (`node test.js`), a real-browser UI test that drives the
 actual app in headless Chromium (presets, run, compare, catalog,
-offline cache), and a static-server check that every asset serves.
+history, offline cache), and a static-server check that every asset serves.
 
 ## Known limits
 
@@ -204,8 +211,9 @@ offline cache), and a static-server check that every asset serves.
 - The model is a heuristic, not a simulation. Big-bore + hot-cam
   combos extrapolate furthest from the calibrated stock baselines —
   treat those numbers as the roughest.
-- One device, one browser: no saved combos yet — a combo lives only
-  until you navigate away. Save/export is a future upgrade.
+- One device, one browser: saved runs live in that browser's
+  localStorage (50 most recent). There is no export yet — moving runs
+  to another device is a future upgrade.
 
 ## License
 
